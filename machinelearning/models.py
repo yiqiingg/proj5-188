@@ -68,6 +68,10 @@ class RegressionModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.w1 = nn.Parameter(1,512)
+        self.t1 = nn.Parameter(1,512)
+        self.w2 = nn.Parameter(512,1)
+        self.t2 = nn.Parameter(1,1)
 
     def run(self, x):
         """
@@ -79,6 +83,12 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
+        xw1 = nn.Linear(x, self.w1)
+        predicted_y1 = nn.AddBias(xw1, self.t1)
+        midNet = nn.ReLU(predicted_y1)
+        xw2 = nn.Linear(midNet, self.w2)
+        predicted_y2 = nn.AddBias(xw2, self.t2)
+        return predicted_y2
 
     def get_loss(self, x, y):
         """
@@ -91,12 +101,27 @@ class RegressionModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        loss = nn.SquareLoss(self.run(x), y)
+        return loss
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        lossRate = float('inf')
+        while(lossRate>0.02):
+            #loss = self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y))
+            grad_wrt_w1 = nn.gradients(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y)),[self.w1])[0]
+            grad_wrt_t1 = nn.gradients(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y)),[self.t1])[0]
+            grad_wrt_w2 = nn.gradients(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y)),[self.w2])[0]
+            grad_wrt_t2 = nn.gradients(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y)),[self.t2])[0]
+            self.w1.update(grad_wrt_w1, -0.02)
+            self.t1.update(grad_wrt_t1, -0.02)
+            self.w2.update(grad_wrt_w2, -0.02)
+            self.t2.update(grad_wrt_t2, -0.02)
+            lossRate = nn.as_scalar(self.get_loss(nn.Constant(dataset.x),nn.Constant(dataset.y)))
+
 
 class DigitClassificationModel(object):
     """
