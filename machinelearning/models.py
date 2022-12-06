@@ -209,7 +209,6 @@ class DigitClassificationModel(object):
             self.w3.update(grad_wrt_w3, -0.5)
             self.t3.update(grad_wrt_t3, -0.5)
             lossRate = dataset.get_validation_accuracy()
-            print(lossRate)
 
 
 class LanguageIDModel(object):
