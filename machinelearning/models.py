@@ -140,6 +140,12 @@ class DigitClassificationModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.w1 = nn.Parameter(784,200)
+        self.t1 = nn.Parameter(1,200)
+        self.w2 = nn.Parameter(200,100)
+        self.t2 = nn.Parameter(1,100)
+        self.w3 = nn.Parameter(100,10)
+        self.t3 = nn.Parameter(1,10)
 
     def run(self, x):
         """
@@ -156,6 +162,15 @@ class DigitClassificationModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
+        xw1 = nn.Linear(x, self.w1)
+        predicted_y1 = nn.AddBias(xw1, self.t1)
+        midNet = nn.ReLU(predicted_y1)
+        xw2 = nn.Linear(midNet, self.w2)
+        predicted_y2 = nn.AddBias(xw2, self.t2)
+        midNet = nn.ReLU(predicted_y2)
+        xw3 = nn.Linear(midNet, self.w3)
+        predicted_y3 = nn.AddBias(xw3, self.t3)
+        return predicted_y3
 
     def get_loss(self, x, y):
         """
@@ -171,12 +186,31 @@ class DigitClassificationModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        loss = nn.SoftmaxLoss(self.run(x), y)
+        return loss
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        lossRate = -float('inf')
+        while(lossRate<0.973):
+            grad_wrt_w1 = nn.gradients(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y)),[self.w1])[0]
+            grad_wrt_t1 = nn.gradients(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y)),[self.t1])[0]
+            grad_wrt_w2 = nn.gradients(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y)),[self.w2])[0]
+            grad_wrt_t2 = nn.gradients(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y)),[self.t2])[0]
+            grad_wrt_w3 = nn.gradients(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y)),[self.w3])[0]
+            grad_wrt_t3 = nn.gradients(self.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y)),[self.t3])[0]
+            self.w1.update(grad_wrt_w1, -0.5)
+            self.t1.update(grad_wrt_t1, -0.5)
+            self.w2.update(grad_wrt_w2, -0.5)
+            self.t2.update(grad_wrt_t2, -0.5)
+            self.w3.update(grad_wrt_w3, -0.5)
+            self.t3.update(grad_wrt_t3, -0.5)
+            lossRate = dataset.get_validation_accuracy()
+            print(lossRate)
+
 
 class LanguageIDModel(object):
     """
